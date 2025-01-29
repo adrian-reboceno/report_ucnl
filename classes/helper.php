@@ -69,17 +69,27 @@ class helper {
     }
     public static function get_user($courseid, $role) {
         global $DB;
+        switch ($role) {
+            case 'student':
+                $roleid = 5;
+                break;
+            case 'teacher':
+                $roleid = '3,4';
+                break;
+            default:
+                $roleid = 5;
+                break;
+        }
         $sql = "SELECT u.id, u.firstname, u.lastname FROM {user} u
             JOIN {role_assignments} ra ON ra.userid = u.id
             JOIN {context} c ON c.id = ra.contextid
             JOIN {course} co ON co.id = c.instanceid
-            WHERE co.id = :courseid AND ra.roleid = :roleid";
-        $params = array('courseid' => $courseid, 'roleid' => $role);
-        var_dump($params);
-        $students = $DB->get_records_sql($sql, $params);
+            WHERE co.id = :courseid AND ra.roleid IN ({$roleid})";
+        $params = array('courseid' => $courseid);       
+        $users = $DB->get_records_sql($sql, $params);
         $data[0] = 'Todos';
-        foreach ($students as $student) {
-            $data[$student->id] = $student->firstname . ' ' . $student->lastname;
+        foreach ($users as $user) {
+            $data[$user->id] = $user->firstname . ' ' . $user->lastname;
         }
         return $data;
     }
